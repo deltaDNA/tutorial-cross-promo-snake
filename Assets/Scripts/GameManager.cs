@@ -9,7 +9,6 @@ public class GameManager : MonoBehaviour {
 
     private string sharedUserID;
     public PlayerManager player;
-    //public HudManager hud;
     public GameObject snake;
 
     public Text txtStart;
@@ -23,6 +22,9 @@ public class GameManager : MonoBehaviour {
     private Vector3 InitialScale;
     private Vector3 FinalScale;
     bool readyToStart = false; 
+
+
+
 
     private void Start()
     {
@@ -66,6 +68,9 @@ public class GameManager : MonoBehaviour {
     public void StartLevel(int levelNo)
     {
         // Player starts level
+        player.SetLevel(1);
+        player.UpdatePlayerStatistics();
+
         txtGameOver.gameObject.SetActive(false);
         txtStart.gameObject.SetActive(false);
         bttnStart.gameObject.SetActive(false);

@@ -12,8 +12,13 @@ public class Snake : MonoBehaviour {
     private Transform tBorder;
     private Transform bBorder;
     public GameObject tailburst;
-    private GameManager gameManager; 
-    
+    private GameManager gameManager;
+    private PlayerManager playerManager; 
+
+
+    public List<int?> foodPerLevel = new List<int?>(){ 4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48};
+    public int foodLevelOveride = 0;
+    const int DEFAULT_FOOD_SPAWN = 6; 
     
 
     private List<GameObject> tailSections = new List<GameObject>();
@@ -29,6 +34,8 @@ public class Snake : MonoBehaviour {
 
     // Use this for initialization
     void Start () {
+
+        playerManager = GameObject.FindObjectOfType<PlayerManager>();
         gameManager = GameObject.FindObjectOfType<GameManager>();
         rBorder = GameObject.Find("border-right").transform;
         lBorder = GameObject.Find("border-left").transform;
@@ -36,7 +43,7 @@ public class Snake : MonoBehaviour {
         bBorder = GameObject.Find("border-bottom").transform;
         
         InvokeRepeating("Movement", 0.1f, speed);
-        SpawnFood(6);
+        SpawnFood();
 
     }
 	
@@ -143,21 +150,35 @@ public class Snake : MonoBehaviour {
         if (foodList.Count == 0)
         {
             gameManager.LevelUp();
-            SpawnFood(6);
+            SpawnFood();
 
         }
-        
-       
+        playerManager.SetFoodRemaining(foodList.Count);
+
+
     }
-    public void SpawnFood(int n)
+    public void SpawnFood()
     {
+        int n = DEFAULT_FOOD_SPAWN; 
+
+        if (foodLevelOveride > 0)
+        {
+            n = foodLevelOveride;
+        }
+        else if (foodPerLevel.Count > playerManager.playerLevel && foodPerLevel[playerManager.playerLevel -1] != null)
+        {
+            n = (int)foodPerLevel[playerManager.playerLevel - 1];
+        }
+
+
         for (int i = 0; i < n; i++)
         {
-            int x = (int)Random.Range(lBorder.position.x, rBorder.position.x);
-            int y = (int)Random.Range(bBorder.position.y, tBorder.position.y);
+            float x = (float)Random.Range(lBorder.position.x+1, rBorder.position.x-1);
+            float y = (float)Random.Range(bBorder.position.y+1, tBorder.position.y-1);
             GameObject f = Instantiate(food, new Vector3(x, y, -1), Quaternion.identity);
             foodList.Add(f);
         }
+        playerManager.SetFoodRemaining(foodList.Count);
     }
 
     public void CleanUpFood()
@@ -165,6 +186,7 @@ public class Snake : MonoBehaviour {
         foreach(GameObject food in foodList)
         {
             Destroy(food);
+            playerManager.SetFoodRemaining(foodList.Count);
         }
     }
 

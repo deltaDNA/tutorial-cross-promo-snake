@@ -6,52 +6,46 @@ using UnityEngine;
 
 public class PlayerManager : MonoBehaviour {
 
-    // Health, Level & Coins are set in PlayFab
     public int playerLevel = 1 ;
     public int playerHealth = 100 ;
     public int playerCoins = 10 ;
 
-    // Assigned to player from deltaDNA AB Test 
-    // initiated from PlayFab with CLoud Script
-    public int difficulty = 100; 
-
+    public int foodRemaining = 0; 
     public HudManager hud;
-
 
 	// Use this for initialization
 	void Start () {
 
-        hud = GameObject.FindObjectOfType<HudManager>();
-        GetPlayerInventory();   // Contains Virtual Currency Balance
-        GetPlayerStatistics();  // Contains Numeric Stats (playerLevel, playerHealth..)
+        hud = GameObject.FindObjectOfType<HudManager>();          
         UpdatePlayerStatistics();
     }
 
-
-
-
-    public void GetPlayerInventory()
+    public void SetLevel(int l)
     {
+        playerLevel = l;
+        hud.SetLevel(playerLevel);
     }
-
-
-
-    public void GetPlayerStatistics()
+    public void SetHealth(int h)
     {
+        playerHealth = h;
+        hud.SetHealth(playerHealth);
     }
-
-
+    public void SetCoins(int c)
+    {
+        playerCoins = c;
+        hud.SetCoins(playerCoins);
+    }
+    public void SetFoodRemaining(int f)
+    {
+        foodRemaining = f;
+        hud.SetFoodRemaining(foodRemaining);
+    }
 
     public void UpdatePlayerStatistics()
     { 
         hud.SetCoins(playerCoins);
         hud.SetHealth(playerHealth);
         hud.SetLevel(playerLevel);
-        hud.SetDifficulty(difficulty);
-    }
-
-
-    
-
-    
+        hud.SetFoodRemaining(foodRemaining);
+    } 
 }
