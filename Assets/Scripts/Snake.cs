@@ -1,89 +1,171 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 public class Snake : MonoBehaviour {
 
-    public float x          = 0f;
-    public float y          = 0f;
-    public float z          = 0f;
-    public float direction  = 0f;
-    public float velocity   = 0.2f;
-    public int length       = 5;
-    public float bodySectionLength = 1f;
-    //bool vertical = false;
-   // bool horizontal = true;
-    public Vector3          head;    
-    public List<Vector3>    snakeSections;
+    public GameObject tail;
+    public GameObject food;
+    private Transform rBorder;
+    private Transform lBorder;
+    private Transform tBorder;
+    private Transform bBorder;
+    public GameObject tailburst;
+    private GameManager gameManager; 
     
     
-    LineRenderer snakeLine; 
 
+    private List<GameObject> tailSections = new List<GameObject>();
+    private List<GameObject> tailBurstParticles = new List<GameObject>();
+    private List<GameObject> foodList = new List<GameObject>();
+    private bool vertical = false;
+    private bool horizontal = true;
+    private bool eat = false;
+    private bool dead = false; 
+    private float speed = 0.020f;
+	Vector2 vector = Vector2.up;
+	Vector2 moveVector;
 
-	// Use this for initialization
-	void Start () {
-
-        snakeLine = gameObject.GetComponent<LineRenderer>();    // Create snake line renderer
-        snakeLine.positionCount = length ;                      // Body length + lead and tail
-
-        head = new Vector3(x, y, z);                            // Setup head position
-
-        snakeSections = new List<Vector3>();        
-        snakeSections.Add(head);
-                  
-        for (int i=1; i < this.length; i++)                    // Setup body position for each section
-        {
-            snakeSections.Add(new Vector3(x, y + (bodySectionLength * -i), z));                       
-        }
-
-        Debug.Log("Snake Spawned");
-        //pUpdate();
+    // Use this for initialization
+    void Start () {
+        gameManager = GameObject.FindObjectOfType<GameManager>();
+        rBorder = GameObject.Find("border-right").transform;
+        lBorder = GameObject.Find("border-left").transform;
+        tBorder = GameObject.Find("border-top").transform;
+        bBorder = GameObject.Find("border-bottom").transform;
+        
+        InvokeRepeating("Movement", 0.1f, speed);
+        SpawnFood(6);
 
     }
 	
-
 	// Update is called once per frame
 	void Update () {
-
-      
-        Quaternion Rotation = Quaternion.Euler(0,  0, direction);
-        Vector3 headDirection = Rotation * Vector3.up ;
-
-        Vector3 newHead = new Vector3(); 
-        newHead = head + headDirection * Time.deltaTime * velocity;
-
-        float distanceTravelled = Vector3.Distance(newHead, head);       
-        
-        //for (int i = length - 1; i > 0  ; i--)
-        for (int i=1; i < length; i++)
-        {
-            // find direction to previous segment
-            
-            Vector3 relativePosition = snakeSections[i] - snakeSections[i - 1] ;
-            Quaternion sectionRotation = Quaternion.LookRotation(relativePosition);
-
-            // calc segment direction
-            Vector3 sectionDirection = sectionRotation * Vector3.up; 
-            snakeSections[i] += sectionDirection * distanceTravelled;
-            
-
-            
-            // update segment position
-
-
-            //Vector3 sectionDirection = snakeSections[i-1] - snakeSections[i];
-                              // //snakeSections[i] += sectionDirection * distanceTravelled; // bodySectionLength; // Time.deltaTime * velocity;
-            //snakeSections[i] = snakeSections[i] + headDirection * Time.deltaTime * velocity;
-            //snakeSections[i] = snakeSections[i - 1];           
+        if (Input.GetKey(KeyCode.RightArrow) && horizontal) {
+            horizontal = false;
+            vertical = true;
+            vector = Vector2.right;
+        } else if (Input.GetKey(KeyCode.UpArrow) &&  vertical) {
+            horizontal = true;
+            vertical = false;
+            vector = Vector2.up;
+        } else if (Input.GetKey(KeyCode.DownArrow) && vertical) {
+            horizontal = true;
+            vertical = false;
+            vector = -Vector2.up;
+        } else if (Input.GetKey(KeyCode.LeftArrow) && horizontal) {
+            horizontal = false;
+            vertical = true;
+            vector = -Vector2.right;
         }
-        head = newHead; 
-             
-
-        snakeSections[0] = head;
-        for (int i=0; i < length; i++)
-        {
-            snakeLine.SetPosition(i, snakeSections[i]);
-        }
+        moveVector = vector / 20f;
 
     }
+
+    void Movement()
+    {
+        if (!dead)
+        {
+            Vector3 ta = transform.position;
+            if (eat)
+            {
+                if (speed > 0.002)
+                {
+                    speed = speed - 0.002f;
+                }
+
+
+                GameObject g = (GameObject)Instantiate(tail, ta, Quaternion.identity);
+                tailSections.Insert(0, g);
+                Debug.Log(speed);
+                eat = false;
+            }
+            else if (tailSections.Count > 0)
+            {
+                tailSections.Last().transform.position = ta;
+                tailSections.Insert(0, tailSections.Last());
+                tailSections.RemoveAt(tailSections.Count - 1);
+            }
+
+            transform.Translate(moveVector);//* Time.deltaTime);
+        }
+    }
+    void OnTriggerEnter(Collider c)
+    {
+
+        if (c.name.StartsWith("food"))
+        {
+            eat = true;
+            EatFood(c.gameObject);
+        }
+        else if(c.name.StartsWith("border"))
+        {
+            dead = true;
+            Debug.Log("Boom");
+            foreach(GameObject t in tailSections)
+            {
+                GameObject p = (GameObject)Instantiate(tailburst, t.transform.position, Quaternion.identity);
+                tailBurstParticles.Add(p);
+                Destroy(t); // Destroy tail sections
+            }
+
+            StartCoroutine(DeathOnTimer());
+            
+        }
+    }
+    private IEnumerator DeathOnTimer()
+    {
+        while (true)
+        {
+            yield return new WaitForSeconds(1f);
+
+            
+            CleanUpFood();
+            gameManager.PlayerDied();
+            Destroy(gameObject);
+        }
+    }
+
+    private void EatFood(GameObject f)
+    {
+        foreach (GameObject food in foodList)
+        {
+            if (food == f)
+            {
+                foodList.Remove(food);
+                Destroy(f);
+                Debug.Log("Munch");
+                break;
+            }
+        }
+
+        if (foodList.Count == 0)
+        {
+            gameManager.LevelUp();
+            SpawnFood(6);
+
+        }
+        
+       
+    }
+    public void SpawnFood(int n)
+    {
+        for (int i = 0; i < n; i++)
+        {
+            int x = (int)Random.Range(lBorder.position.x, rBorder.position.x);
+            int y = (int)Random.Range(bBorder.position.y, tBorder.position.y);
+            GameObject f = Instantiate(food, new Vector3(x, y, -1), Quaternion.identity);
+            foodList.Add(f);
+        }
+    }
+
+    public void CleanUpFood()
+    {
+        foreach(GameObject food in foodList)
+        {
+            Destroy(food);
+        }
+    }
+
 }

@@ -7,30 +7,69 @@ using UnityEngine.UI;
 
 public class GameManager : MonoBehaviour {
 
-
+    private string sharedUserID;
     public PlayerManager player;
-    public HudManager hud;
+    //public HudManager hud;
     public GameObject snake;
-    public GameObject food;
-    private Transform rBorder;
-    private Transform lBorder;
-    private Transform tBorder;
-    private Transform bBorder;
+
+    public Text txtStart;
+    public Text txtGameOver;
+    public Button bttnStart;
+
+
+    // Start Button Size and Color
+    private Color sourceColor;
+    private Color targetColor;
+    private Vector3 InitialScale;
+    private Vector3 FinalScale;
+    bool readyToStart = false; 
 
     private void Start()
     {
-        rBorder = GameObject.Find("border-right").transform;
-        lBorder = GameObject.Find("border-left").transform;
-        tBorder = GameObject.Find("border-top").transform;
-        bBorder = GameObject.Find("border-bottom").transform;
+        // These are for pulsing the start button size and alpha 
+        InitialScale = transform.localScale;
+        FinalScale = new Vector3(InitialScale.x + 0.04f,
+                                 InitialScale.y + 0.04f,
+                                 InitialScale.z);
+        sourceColor = new Color(1.0f, 1.0f, 1.0f, 0.5f);
+        targetColor = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 
-        Vector3 pos = new Vector3(0, 0, -1);
-        Instantiate(player, pos, Quaternion.identity);
+        //Vector3 pos = new Vector3(0, 0, -1);
+        //Instantiate(player, pos, Quaternion.identity);
+
+        DdnaPlayerConfig();
+
+        txtStart.gameObject.SetActive(true);
+        bttnStart.gameObject.SetActive(true);
+        readyToStart = true;
     }
 
+    private void Update()
+    {
+        if (readyToStart)
+        {
+            // Pulse the start button size and alpha
+            bttnStart.image.color = Color.Lerp(sourceColor, targetColor, Mathf.PingPong(Time.time, 1.2f));
+            bttnStart.transform.localScale = Vector3.Lerp(InitialScale, FinalScale, Mathf.PingPong(Time.time, 1.2f));
+
+        }
+    }
+    private void DdnaPlayerConfig()
+    {
+        // Use deviceID in this simple cross promo example. 
+        sharedUserID = SystemInfo.deviceUniqueIdentifier;
+        Debug.Log("Shared userID (deviceID) = " + sharedUserID);
+
+
+
+    }
     public void StartLevel(int levelNo)
     {
         // Player starts level
+        txtGameOver.gameObject.SetActive(false);
+        txtStart.gameObject.SetActive(false);
+        bttnStart.gameObject.SetActive(false);
+        readyToStart = false; 
 
         // Record Mission Started 
 
@@ -38,9 +77,16 @@ public class GameManager : MonoBehaviour {
         Vector3 pos = new Vector3(0, 0, -1);
         Instantiate(snake, pos, Quaternion.identity);
 
-        SpawnFood(6);
+        
     }
+    public void PlayerDied()
+    {
+        txtGameOver.gameObject.SetActive(true);
+        txtStart.gameObject.SetActive(true);
+        bttnStart.gameObject.SetActive(true);
+        readyToStart = true; 
 
+    }
     public void LevelUp()
     {
         player.playerLevel++;
@@ -49,25 +95,6 @@ public class GameManager : MonoBehaviour {
 
         player.UpdatePlayerStatistics();
     }
-    public void SpawnFood(int n)
-    {
-        for (int i = 0; i < n; i++)
-        {
-            int x = (int)Random.Range(lBorder.position.x, rBorder.position.x);
-            int y = (int)Random.Range(bBorder.position.y, tBorder.position.y);
-            Instantiate(food, new Vector3(x, y,-1), Quaternion.identity);
-            Debug.Log("Burp!");
-        }
 
-    }
-    void OnTriggerEnter(Collider c)
-    {
 
-        if (c.name.StartsWith("food"))
-        {
-            //eat = true;
-            Destroy(c.gameObject);
-            Debug.Log("Munch");
-        }
-    }
 }
