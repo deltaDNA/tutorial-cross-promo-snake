@@ -61,7 +61,7 @@ public class GameConsole : MonoBehaviour {
     public void UpdateConsole()
     {
         textDdnaUserID.text = "DDNA UserID : " + DDNA.Instance.UserID;
-        textSharedUserID.text = "Shared UserID : " + SystemInfo.deviceUniqueIdentifier;
+        textSharedUserID.text = "Shared UserID : " + DDNA.Instance.CrossGameUserID;
         textSessionID.text = "SessionID : " + DDNA.Instance.SessionID;
         textDdnaSDKVersion.text = "DDNA SDK Version : " + Settings.SDK_VERSION;
         textUnityVersion.text = "Unity Version : " + Application.unityVersion;

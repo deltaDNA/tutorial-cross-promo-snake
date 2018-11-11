@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Text; 
 using UnityEngine;
 using UnityEngine.UI;
 using DeltaDNA;
@@ -15,6 +16,7 @@ public class GameManager : MonoBehaviour {
     public Text txtStart;
     public Text txtGameOver;
     public Button bttnStart;
+    public InputField infldCrossGameUserID; 
 
 
     public List<int?> foodPerLevel = new List<int?>() { 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36, 38, 40, 42, 44, 46, 48 };
@@ -62,17 +64,61 @@ public class GameManager : MonoBehaviour {
         }
     }
     private void DdnaPlayerConfig()
-    {        
+    {
         // Use deviceID in this simple cross promo example. 
         sharedUserID = SystemInfo.deviceUniqueIdentifier;
-        Debug.Log("Shared userID (deviceID) = " + sharedUserID);
+        
+       
+        if (sharedUserID == "n/a" || !string.IsNullOrEmpty(PlayerPrefs.GetString("SharedUserID")))
+        {
+            // WebGL and some other platforms don't support SystemInfo.deviceUniqueIdentifier;
+            // Under normal circumstances you would use your own login system or a social identifier
+            // but for demo simplicity we'll just generate a key that you can manually enter in to multiple games.
+            // and store it in player prefs
 
+            // check player prefs
+            string s = PlayerPrefs.GetString("SharedUserID");
+            if (string.IsNullOrEmpty(s))
+            {
+                // generate a new code                
+                s = GenerateCode(5);
+                // store new code
+                PlayerPrefs.SetString("SharedUserID", s);                
+            }
+            sharedUserID = s; 
+        }
+
+        DDNA.Instance.CrossGameUserID = sharedUserID;
+        Debug.Log("Cross Game userID (deviceID) = " + DDNA.Instance.CrossGameUserID);
         DDNA.Instance.SetLoggingLevel(DeltaDNA.Logger.Level.DEBUG);
         DDNA.Instance.ClientVersion = Application.version;
+       
         DDNA.Instance.StartSDK();
 
 
     }
+    public void SetCustomCrossPormoUserID()
+    {
+        
+        if (!string.IsNullOrEmpty(infldCrossGameUserID.text))
+        {
+            DDNA.Instance.CrossGameUserID = infldCrossGameUserID.text;
+            PlayerPrefs.SetString("SharedUserID", DDNA.Instance.CrossGameUserID);
+            console.UpdateConsole();
+        }
+    }
+
+    private string GenerateCode(int n)
+    {
+        string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder result = new StringBuilder(n);
+        for (int i = 0; i < n; i++)
+        {
+            result.Append(characters[Random.Range(0, characters.Length-1)]);
+        }
+        return result.ToString();
+    }
+
     public void StartLevel(int levelNo)
     {
         // Player starts level
