@@ -184,6 +184,23 @@ public class GameManager : MonoBehaviour {
         .Run();
     }
 
+    public void ModifierApplied(string modifierType, int modifierAmount)
+    {
+        DDNA.Instance.RecordEvent(new GameEvent("modifierApplied")
+            .AddParam("modifierType", modifierType)
+            .AddParam("modifierAmount", modifierAmount)
+            .AddParam("userLevel", player.playerLevel)
+            .AddParam("coinBalance", player.playerCoins))
+        .Add(new GameParametersHandler(gameParameters => {
+            gameParametersHandler(gameParameters);
+        }))
+        .Add(new ImageMessageHandler(DDNA.Instance, imageMessage => {
+            imageMessageHandler(imageMessage);
+        }))
+        .Run();
+
+    }
+
     public void RewardReceived(string rewardType, int rewardAmount)
     {
         DDNA.Instance.RecordEvent(new GameEvent("rewardReceived")
@@ -212,9 +229,8 @@ public class GameManager : MonoBehaviour {
         if (gameParameters.ContainsKey("food"))
         {
             foodLevelOveride = System.Convert.ToInt32(gameParameters["food"]);
+            ModifierApplied("food", System.Convert.ToInt32(gameParameters["food"]));
         }
-
-
     }
     private void imageMessageHandler(ImageMessage imageMessage)
     {
