@@ -16,9 +16,7 @@ public class Snake : MonoBehaviour {
     private PlayerManager playerManager; 
 
 
-    public List<int?> foodPerLevel = new List<int?>(){ 4,5,6,7,8,9,10,12,14,16,18,20,22,24,26,28,30,32,34,36,38,40,42,44,46,48};
-    public int foodLevelOveride = 0;
-    const int DEFAULT_FOOD_SPAWN = 6; 
+
     
 
     private List<GameObject> tailSections = new List<GameObject>();
@@ -85,7 +83,7 @@ public class Snake : MonoBehaviour {
 
                 GameObject g = (GameObject)Instantiate(tail, ta, Quaternion.identity);
                 tailSections.Insert(0, g);
-                Debug.Log(speed);
+                //Debug.Log(speed);
                 eat = false;
             }
             else if (tailSections.Count > 0)
@@ -159,17 +157,7 @@ public class Snake : MonoBehaviour {
     }
     public void SpawnFood()
     {
-        int n = DEFAULT_FOOD_SPAWN; 
-
-        if (foodLevelOveride > 0)
-        {
-            n = foodLevelOveride;
-        }
-        else if (foodPerLevel.Count > playerManager.playerLevel && foodPerLevel[playerManager.playerLevel -1] != null)
-        {
-            n = (int)foodPerLevel[playerManager.playerLevel - 1];
-        }
-
+        int n = gameManager.foodSpawn;
 
         for (int i = 0; i < n; i++)
         {
@@ -178,6 +166,7 @@ public class Snake : MonoBehaviour {
             GameObject f = Instantiate(food, new Vector3(x, y, -1), Quaternion.identity);
             foodList.Add(f);
         }
+        gameManager.foodLevelOveride = 0; 
         playerManager.SetFoodRemaining(foodList.Count);
     }
 

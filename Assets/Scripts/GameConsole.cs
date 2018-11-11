@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
-// using DeltaDNA;
+using DeltaDNA;
 
 
 public class GameConsole : MonoBehaviour {
@@ -10,10 +10,12 @@ public class GameConsole : MonoBehaviour {
     public Text textConsole;
     public Text textDdnaUserID;
     public Text textSharedUserID;
+    public Text textSessionID;
     public Text textUnityVersion;
     public Text textDdnaSDKVersion;
+    public Text textClientVersion;
     public bool isConsoleVisible = false; 
-
+    
     // UI Debug console will be used to let player see what the game and SDKs are doing.
     public int numConsoleLines = 15;
     private List<string> console = new List<string>();
@@ -28,11 +30,6 @@ public class GameConsole : MonoBehaviour {
 
     private void Start()
     {
-
-        //textDdnaUserID.text = "deltaDNA UserID : " +  DDNA.Instance.UserID;               
-        //textDdnaSDKVersion.text = "deltaDNA SDK Version : " + Settings.SDK_VERSION;
-        textUnityVersion.text = "Unity Version : " + Application.unityVersion;
-        textSharedUserID.text = "Shared UserID : " + SystemInfo.deviceUniqueIdentifier;
         SetConsoleVisibility(false);
     }
 
@@ -56,7 +53,18 @@ public class GameConsole : MonoBehaviour {
 
     private void SetConsoleVisibility(bool isVisible)
     {
+
+        UpdateConsole();        
         gameObject.SetActive(isVisible);
     }
 
+    public void UpdateConsole()
+    {
+        textDdnaUserID.text = "DDNA UserID : " + DDNA.Instance.UserID;
+        textSharedUserID.text = "Shared UserID : " + SystemInfo.deviceUniqueIdentifier;
+        textSessionID.text = "SessionID : " + DDNA.Instance.SessionID;
+        textDdnaSDKVersion.text = "DDNA SDK Version : " + Settings.SDK_VERSION;
+        textUnityVersion.text = "Unity Version : " + Application.unityVersion;
+        textClientVersion.text = "Client Version : " + DDNA.Instance.ClientVersion; 
+    }
 }
