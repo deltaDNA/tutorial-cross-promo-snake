@@ -15,8 +15,6 @@ public class Snake : MonoBehaviour {
     private GameManager gameManager;
     private PlayerManager playerManager; 
 
-
-
     
 
     private List<GameObject> tailSections = new List<GameObject>();
@@ -82,6 +80,10 @@ public class Snake : MonoBehaviour {
 
 
                 GameObject g = (GameObject)Instantiate(tail, ta, Quaternion.identity);
+                if (tailSections.Count > 10)
+                {
+                    g.name = "collidableTail";
+                }
                 tailSections.Insert(0, g);
                 //Debug.Log(speed);
                 eat = false;
@@ -104,7 +106,7 @@ public class Snake : MonoBehaviour {
             eat = true;
             EatFood(c.gameObject);
         }
-        else if(c.name.StartsWith("border"))
+        else if (c.name.StartsWith("border"))
         {
             dead = true;
             Debug.Log("Boom");
